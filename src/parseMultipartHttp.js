@@ -47,7 +47,8 @@ export function parseMultipartHttp(buffer, boundary, previousParts = [], isPream
     // remove trailing boundary things
     body = body.replace(delimiter + '\r\n', '').replace(delimiter + '--\r\n', '');
 
-    const payload = JSON.parse(body);
+    let payload = JSON.parse(body);
+    if (payload.incremental) payload = payload.incremental[0];
     const parts = [...previousParts, payload];
 
     if (next && next.length) {
