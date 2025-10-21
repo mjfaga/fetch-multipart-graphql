@@ -223,15 +223,15 @@ describe('PathResolver', function () {
                 expect(onResponse).not.toHaveBeenCalled();
 
                 resolver.handleChunk(chunk1);
-                expect(onResponse.mock.calls[0][0]).toEqual([chunk1Data]);
+                assertChunksRecieved(onResponse.mock.calls[0][0], [chunk1Data]);
 
                 onResponse.mockClear();
                 resolver.handleChunk(chunk2);
-                expect(onResponse.mock.calls[0][0]).toEqual([chunk2Data]);
+                assertChunksRecieved(onResponse.mock.calls[0][0], [chunk2Data]);
 
                 onResponse.mockClear();
                 resolver.handleChunk(chunk3);
-                expect(onResponse.mock.calls[0][0]).toEqual([chunk3Data]);
+                assertChunksRecieved(onResponse.mock.calls[0][0], [chunk3Data]);
 
                 onResponse.mockClear();
                 const chunk4FinalBoundary = getMultiPartResponse(
@@ -240,7 +240,38 @@ describe('PathResolver', function () {
                     false
                 );
                 resolver.handleChunk(chunk4FinalBoundary);
-                expect(onResponse.mock.calls[0][0]).toEqual([chunk4Data]);
+                assertChunksRecieved(onResponse.mock.calls[0][0], [chunk4Data]);
+            });
+
+            it('should work when chunks end with boundary and no line break', function () {
+                const onResponse = jest.fn();
+                const resolver = new PatchResolver({
+                    onResponse,
+                    boundary,
+                });
+
+                resolver.handleChunk(`\r\n--${boundary}`);
+
+                expect(onResponse).not.toHaveBeenCalled();
+
+                const chunk1NoLineBreak = getMultiPartResponse(chunk1Data, boundary, false);
+                resolver.handleChunk(chunk1NoLineBreak);
+                assertChunksRecieved(onResponse.mock.calls[0][0], [chunk1Data]);
+
+                onResponse.mockClear();
+                const chunk2NoLineBreak = getMultiPartResponse(chunk2Data, boundary, false);
+                resolver.handleChunk(chunk2NoLineBreak);
+                assertChunksRecieved(onResponse.mock.calls[0][0], [chunk2Data]);
+
+                onResponse.mockClear();
+                const chunk3NoLineBreak = getMultiPartResponse(chunk3Data, boundary, false);
+                resolver.handleChunk(chunk3NoLineBreak);
+                assertChunksRecieved(onResponse.mock.calls[0][0], [chunk3Data]);
+
+                onResponse.mockClear();
+                const chunk4NoLineBreak = getMultiPartResponse(chunk4Data, `${boundary}--`, false);
+                resolver.handleChunk(chunk4NoLineBreak);
+                assertChunksRecieved(onResponse.mock.calls[0][0], [chunk4Data]);
             });
 
             it('should work when final chunk ends with terminating boundary', function () {

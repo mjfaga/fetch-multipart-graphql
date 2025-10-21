@@ -1,5 +1,5 @@
 function getDelimiter(boundary) {
-    return `\r\n--${boundary}\r\n`;
+    return `\r\n--${boundary}`;
 }
 
 function getClosingDelimiter(boundary) {
